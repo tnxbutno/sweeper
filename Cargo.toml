@@ -1,0 +1,8 @@
+[package]
+name = "sweeper"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+fltk = "^1.4"
+walkdir = "^2.3"
