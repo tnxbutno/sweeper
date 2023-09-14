@@ -1,7 +1,7 @@
 use fltk::{app, prelude::*, window::Window, *};
-use std::fs;
 use std::path::PathBuf;
 use std::sync::mpsc::channel;
+use std::{fs, io};
 use walkdir::WalkDir;
 enum DisplayCommands {
     PrintPaths(Vec<PathBuf>),
@@ -82,7 +82,12 @@ fn main() {
                 app::quit();
                 return;
             }
-            remove_odd_files(files);
+            match remove_files(files) {
+                Ok(_) => {}
+                Err(_) => {
+                    dialog::alert(0, 0, "Cannot remove files!");
+                }
+            };
         }
         dialog::alert(0, 0, "All odd files are deleted!");
         clear_display.send(DisplayCommands::Clear).unwrap();
@@ -148,8 +153,111 @@ fn find_odd_files(dirs: &Vec<PathBuf>) -> Option<Vec<PathBuf>> {
     Some(result)
 }
 
-fn remove_odd_files(files: Vec<PathBuf>) {
+fn remove_files(files: Vec<PathBuf>) -> io::Result<()> {
     for file in files {
-        fs::remove_file(file).unwrap();
+        fs::remove_file(&file)?
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{find_odd_files, remove_files};
+    use std::fs;
+    use std::path::PathBuf;
+
+    #[test]
+    fn find_odd_files_test() {
+        let tmp_dir = tempfile::TempDir::new().unwrap();
+        let dir_path = tmp_dir.path();
+        let mut odd_files = vec![];
+
+        // Generate files
+        for i in 0..10 {
+            let mut file = dir_path.join(PathBuf::from(format!("file_{i}.jpg")));
+            let file_path = file.as_path();
+            fs::File::create(&file_path).unwrap();
+            if i % 2 == 0 {
+                file.set_extension("nef");
+                let file_path = file.as_path();
+                fs::File::create(file_path).unwrap();
+            } else {
+                odd_files.push(file_path.to_owned());
+            }
+        }
+
+        let dirs = vec![PathBuf::from(dir_path)];
+        let mut res = find_odd_files(&dirs).unwrap();
+
+        assert_eq!(res.len(), odd_files.len());
+
+        res.sort();
+        odd_files.sort();
+        assert_eq!(res, odd_files);
+    }
+
+    #[test]
+    fn find_odd_files_in_nested_directories_test() {
+        let mut odd_files = vec![];
+
+        // Generate root files
+        let root_dir = tempfile::TempDir::new().unwrap();
+        let root_dir_path = root_dir.path();
+        for i in 0..10 {
+            let mut file = root_dir_path.join(PathBuf::from(format!("file_{i}.jpg")));
+            let file_path = file.as_path();
+            fs::File::create(&file_path).unwrap();
+            if i % 2 == 0 {
+                file.set_extension("nef");
+                let file_path = file.as_path();
+                fs::File::create(file_path).unwrap();
+            } else {
+                odd_files.push(file_path.to_owned());
+            }
+        }
+
+        // Generate nested files
+        let nested_dir = tempfile::TempDir::new_in(root_dir_path).unwrap();
+        let nested_dir_path = nested_dir.path();
+        for i in 0..10 {
+            let mut file = nested_dir_path.join(PathBuf::from(format!("file_{i}.jpg")));
+            let file_path = file.as_path();
+            fs::File::create(&file_path).unwrap();
+            if i % 2 == 0 {
+                odd_files.push(file_path.to_owned());
+            } else {
+                file.set_extension("nef");
+                let file_path = file.as_path();
+                fs::File::create(file_path).unwrap();
+            }
+        }
+
+        let dirs = vec![PathBuf::from(root_dir_path)];
+        let mut res = find_odd_files(&dirs).unwrap();
+
+        assert_eq!(res.len(), odd_files.len());
+
+        res.sort();
+        odd_files.sort();
+        assert_eq!(res, odd_files);
+    }
+
+    #[test]
+    fn remove_odd_files_test() {
+        let tmp_dir = tempfile::TempDir::new().unwrap();
+        let dir_path = tmp_dir.path();
+
+        let mut files = vec![];
+        let ext = ["jpg", "nef", "txt"];
+        for e in ext {
+            let file = dir_path.join(PathBuf::from(format!("file.{e}")));
+            let file_path = file.as_path();
+            fs::File::create(file_path).unwrap();
+            files.push(PathBuf::from(file_path));
+        }
+
+        remove_files(files).unwrap();
+        let is_empty = fs::read_dir(dir_path).unwrap().next().is_none();
+        assert!(is_empty);
     }
 }
