@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sweeper - File Cleanup Utility</title>
+</head>
+<body>
+<h1>Sweeper - File Cleanup Utility</h1>
+
+<p>Sweeper is a user-friendly GUI program designed to streamline the process of managing paired JPEG and NEF (Nikon Electronic Format) files. It simplifies identifying and deleting unpaired files, ensuring your photo library stays organized and clutter-free.</p>
+
+<h2>Features</h2>
+
+<p>Sweeper quickly identifies files in your chosen directory that are not paired with their corresponding format (JPEG to NEF and vice versa).</p>
+<p>For example, if you have cat.jpg, dog.jpg, and dog.nef, this program will delete cat.jpg because there is no cat.nef file.</p>
+
+<h2>How It Works</h2>
+
+<p>Sweeper operates based on the following principles:</p>
+
+<ol>
+    <li>It scans the selected directory for both JPEG and NEF files.</li>
+    <li>Sweeper determines whether a file has a matching counterpart in the other format.</li>
+    <li>Unpaired files are presented to you for confirmation before deletion. This ensures that no important files are removed by accident.</li>
+</ol>
+
+<h2>Getting Started</h2>
+
+<p>To use Sweeper, follow these steps:</p>
+
+<ol>
+    <li><strong>Run the Scan:</strong> Click the "Scan" button to choose the directory containing your photo files that need cleaning and initiate the file pairing process.</li>
+    <li><strong>Review and Confirm:</strong> Sweeper will display a list of unpaired files. Review this list carefully, and when you're sure, click "Clean Up!" to remove the unpaired files.</li>
+    <li><strong>Enjoy an Organized Library:</strong> Your photo library is now cleaner and more organized!</li>
+</ol>
+
+<h2>System Requirements</h2>
+
+<ul>
+    <li>Operating System: Linux, MacOS, Windows</li>
+</ul>
+
+<h2>Contributing</h2>
+
+<p>Contributions to Sweeper are welcome! If you have ideas for improvements or bug fixes, please open an issue or submit a pull request.</p>
+
+<h2>License</h2>
+
+<p>Sweeper is open-source software released under the MIT license.
+Source code available in the sweeper <a href="https://github.com/tnxbutno/sweeper">repository</a></p>
+
+<h2>Acknowledgments</h2>
+
+<p>Sweeper is built with <a href="https://github.com/fltk-rs/fltk-rs">fltk-rs</a>, Rust bindings for the FLTK GUI library.</p>
+</body>
+</html>

@@ -1,11 +1,20 @@
+use fltk::enums::{FrameType, Shortcut};
 use fltk::{app, prelude::*, window::Window, *};
 use std::path::PathBuf;
 use std::sync::mpsc::channel;
 use std::{fs, io};
 use walkdir::WalkDir;
+
+const ABOUT: &str = include_str!("about.html");
+
 enum DisplayCommands {
     PrintPaths(Vec<PathBuf>),
     Clear,
+}
+
+#[derive(Clone)]
+enum MenuChoice {
+    About,
 }
 
 fn main() {
@@ -15,6 +24,18 @@ fn main() {
         .center_screen()
         .with_label("Sweeper");
     window.make_resizable(true);
+
+    let mut menu = menu::SysMenuBar::default().with_size(800, 35);
+    menu.set_frame(FrameType::FlatBox);
+
+    let (menu_sender, menu_receiver) = app::channel();
+    menu.add_emit(
+        "&Help/About\t",
+        Shortcut::None,
+        menu::MenuFlag::Normal,
+        menu_sender,
+        MenuChoice::About,
+    );
 
     let mut buf = text::TextBuffer::default();
     let mut text_display = text::TextDisplay::default()
@@ -44,6 +65,7 @@ fn main() {
 
         if dialog.filenames().is_empty() {
             dialog::alert(0, 0, "You have to choose a directory!");
+            return;
         }
 
         display_send.send(DisplayCommands::Clear).unwrap();
@@ -94,8 +116,22 @@ fn main() {
         clean_btn_d.deactivate();
     });
 
-    // Here, we are updating TextDisplay, showing a user which files we will remove.
     while app.wait() {
+        // Handle menu selection
+        if let Some(msg) = menu_receiver.recv() {
+            match msg {
+                MenuChoice::About => {
+                    let mut help = dialog::HelpDialog::new(100, 100, 800, 800);
+                    help.set_value(ABOUT);
+                    help.show();
+                    while help.shown() {
+                        app::wait();
+                    }
+                }
+            }
+        }
+
+        // Here, we are updating TextDisplay, showing a user which files we will remove.
         if let Ok(msg) = display_recv.try_recv() {
             match msg {
                 DisplayCommands::PrintPaths(m) => {
