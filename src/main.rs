@@ -5,7 +5,7 @@ use std::sync::mpsc::channel;
 use std::{fs, io};
 use walkdir::WalkDir;
 
-const ABOUT: &str = include_str!("about.html");
+const ABOUT: &str = include_str!("../assets/about.html");
 
 enum DisplayCommands {
     PrintPaths(Vec<PathBuf>),
